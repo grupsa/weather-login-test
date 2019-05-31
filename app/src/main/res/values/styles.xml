@@ -1,0 +1,41 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+
+        <item name="android:actionMenuTextAppearance">@style/Toolbar.ItemText</item>
+    </style>
+
+    <!-- Toolbar styles -->
+    <style name="ActionBarThemeOverlay" parent="ThemeOverlay.AppCompat.ActionBar" >
+        <item name="android:textColorPrimary">@color/grayish_brown</item>
+        <item name="colorControlNormal">@color/dark_sky_blue</item>
+        <item name="colorControlHighlight">@color/tangerine</item>
+        <item name="android:actionMenuTextColor">@color/dark_sky_blue</item>
+    </style>
+    <style name="Toolbar.TitleText" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
+        <item name="android:textSize">20sp</item>
+    </style>
+    <style name="Toolbar.ItemText" parent="TextAppearance.AppCompat.Widget.ActionBar.Menu">
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <!-- Textfields styles -->
+    <style name="EditTextStyle">
+        <item name="android:textColor">@color/grayish_brown</item>
+        <item name="android:textColorHint">@color/brownish_grey</item>
+        <item name="colorControlNormal">@color/brownish_grey</item>
+        <item name="colorControlActivated">@color/dark_sky_blue</item>
+    </style>
+
+    <!--Login button styles-->
+    <style name="LoginButtonStyle">
+        <item name="android:background">@drawable/login_button</item>
+        <item name="android:textColor">@drawable/login_button_text_color</item>
+    </style>
+
+</resources>
