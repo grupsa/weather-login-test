@@ -3,8 +3,6 @@ package com.example.weatherlogin.ui.login
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
 import com.example.weatherlogin.WeatherLoginApp
-import com.example.weatherlogin.data.LoginDataSource
-import com.example.weatherlogin.data.LoginRepository
 
 /**
  * ViewModel provider factory to instantiate LoginViewModel.

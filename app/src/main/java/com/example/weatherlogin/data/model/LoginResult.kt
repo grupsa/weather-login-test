@@ -1,4 +1,6 @@
-package com.example.weatherlogin.ui.login
+package com.example.weatherlogin.data.model
+
+import com.example.weatherlogin.ui.login.LoggedInUserView
 
 /**
  * Authentication result : success (user details) or error message.

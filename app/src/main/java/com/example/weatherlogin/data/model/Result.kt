@@ -1,4 +1,4 @@
-package com.example.weatherlogin.data
+package com.example.weatherlogin.data.model
 
 /**
  * A generic class that holds a value with its loading status.

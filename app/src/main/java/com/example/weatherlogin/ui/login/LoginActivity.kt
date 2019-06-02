@@ -3,6 +3,7 @@ package com.example.weatherlogin.ui.login
 import android.app.Activity
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Context
 import android.os.Bundle
 import android.support.annotation.StringRes
 import android.support.design.widget.Snackbar
@@ -14,14 +15,12 @@ import android.util.Log
 import android.view.Menu
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.Toast
-
 import com.example.weatherlogin.R
-import com.example.weatherlogin.data.weather.ActualalWeatherData
-import com.example.weatherlogin.data.weather.WeatherCondition
 import com.example.weatherlogin.data.weather.YandexWeatherResponse
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -43,6 +42,7 @@ class LoginActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_login)
 
+        // Setup menu in actionbar
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
@@ -54,22 +54,18 @@ class LoginActivity : AppCompatActivity() {
         loginViewModel = ViewModelProviders.of(this, LoginViewModelFactory())
             .get(LoginViewModel::class.java)
 
-        loginViewModel.loginFormState.observe(this@LoginActivity, Observer {
-            val loginState = it ?: return@Observer
+        // Formstate observation via livedata
+        loginViewModel.loginFormState.observe(this@LoginActivity, Observer { state ->
+            val loginState = state ?: return@Observer
 
             // disable login button unless both username / password is valid
             login.isEnabled = loginState.isDataValid
 
-            if (loginState.usernameError != null) {
-                username.error = getString(loginState.usernameError)
-            }
-
-            if (loginState.passwordError != null) {
-                password.error = getString(loginState.passwordError)
-            }
-
+            loginState.usernameError?.let { username.error = getString(it) }
+            loginState.passwordError?.let { password.error = getString(it) }
         })
 
+        // Login result observation via livedata
         loginViewModel.loginResult.observe(this@LoginActivity, Observer {
             val loginResult = it ?: return@Observer
 
@@ -78,12 +74,12 @@ class LoginActivity : AppCompatActivity() {
                 showLoginFailed(loginResult.error)
             }
             if (loginResult.success != null) {
-                //updateUiWithUser(loginResult.success)
-                updateUiWithWeather(loginResult.success, YandexWeatherResponse(0, ActualalWeatherData(10, WeatherCondition.cloudy)))
-                // setupWeatherObserver().let { compositeDisposable.add(it) }
+                // Request and observation weather via RX
+                setupWeatherObserver(loginResult.success.displayName).let { compositeDisposable.add(it) }
             }
         })
 
+        // Handle input text in login feeld
         username.afterTextChanged {
             loginViewModel.loginDataChanged(
                 username.text.toString(),
@@ -115,60 +111,69 @@ class LoginActivity : AppCompatActivity() {
 
         // Handle tap login button
         login.setOnClickListener {
+            hideSoftInputKeybord()
             loading.visibility = View.VISIBLE
             loginViewModel.login(username.text.toString(), password.text.toString())
         }
     }
 
-    fun setupWeatherObserver(): Disposable {
+    /**
+     * Request and observation weathher via RX
+     */
+    private fun setupWeatherObserver(username: String): Disposable {
         return loginViewModel.getWeather()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 { weather: YandexWeatherResponse? ->
-                    weather?.let { Log.d("debe", it.fact.temp.toString()) }
-                    //resolveRequestEndUI()
-                    //navigateToDetailsActivity(weatherResponse)
-                    //do some stuff
+                    weather?.let { updateUiWithWeather(username, it) }
                 },
                 { throwable: Throwable? ->
-                    Log.e("debe", throwable?.message)
-                    //resolveRequestEndUI()
-                    //handle error as you want
+                    Log.e("Weather request", throwable?.message)
+                    showError()
                 }
             )
+    }
+
+    /**
+     * Output current weather in snsckbar
+     */
+    private fun updateUiWithWeather(user: String, weather: YandexWeatherResponse) {
+        val name = user
+        val temp = weather.fact.temp.toString()
+        val condition = weather.fact.condition.description
+
+        Snackbar.make(
+            window.decorView,
+            String.format(getString(R.string.welcome_weather), name, condition, temp),
+            Snackbar.LENGTH_LONG).setDuration(6000).show()
+    }
+
+    /**
+     * Output the error message in snsckbar
+     */
+    private fun showError() {
+        Snackbar.make(
+            window.decorView,
+            getString(R.string.error_weather),
+            Snackbar.LENGTH_LONG).setDuration(6000).show()
+    }
+
+    /**
+     * Hide skreen keybord
+     */
+    private fun hideSoftInputKeybord() {
+        // Check if no view has focus:
+        val view = this.currentFocus
+        view?.let { v ->
+            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+            imm?.let { it.hideSoftInputFromWindow(v.windowToken, 0) }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu, menu);
         return true
-    }
-
-    private fun updateUiWithUser(model: LoggedInUserView) {
-        val welcome = getString(R.string.welcome)
-        val displayName = model.displayName
-        // TODO : initiate successful logged in experience
-        Toast.makeText(
-            applicationContext,
-            "$welcome $displayName",
-            Toast.LENGTH_LONG
-        ).show()
-    }
-
-    private fun updateUiWithWeather(user: LoggedInUserView, weather: YandexWeatherResponse) {
-        val name = user.displayName
-        val temp = weather.fact.temp.toString()
-        val condition = weather.fact.condition.description
-        // TODO : initiate successful logged in experience
-//        Toast.makeText(
-//            applicationContext,
-//            String.format(getString(R.string.welcome_weather), name, condition, temp),
-//            Toast.LENGTH_LONG
-//        ).show()
-        Snackbar.make(
-            window.decorView,
-            String.format(getString(R.string.welcome_weather), name, condition, temp),
-            Snackbar.LENGTH_LONG).show()
     }
 
     private fun showLoginFailed(@StringRes errorString: Int) {
