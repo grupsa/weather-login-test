@@ -118,7 +118,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     /**
-     * Request and observation weathher via RX
+     * Request and observation weather via RX
      */
     private fun setupWeatherObserver(username: String): Disposable {
         return loginViewModel.getWeather()

@@ -30,7 +30,6 @@ class LoginViewModel @Inject constructor(private val loginRepository: LoginRepos
         } else {
             _loginResult.value = LoginResult(error = R.string.login_failed)
         }
-        weatherRepository.getWeather()
     }
 
     fun getWeather() = weatherRepository.getWeather()
